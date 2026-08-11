@@ -1,0 +1,33 @@
+LangBot Unified Attachment Pipeline
+Copyright 2026 Unified Attachment Pipeline Contributors
+
+This repository is an independent implementation released under Apache-2.0.
+
+Compatibility reference:
+- LangBot, https://github.com/langbot-app/LangBot
+  License: Apache-2.0
+  Reviewed commit: 7820949d3a3d8ca0b6f07d060deab40cb86807ff
+  Review date: 2026-08-12
+
+Optional ecosystem integration reference:
+- langbot-app/langbot-parser
+  Reviewed commit: 57478b2d04fdfdaab21793979e3777e75a822419
+  No recognized license file was present in the reviewed snapshot.
+  Its source is not copied or redistributed by this repository.
+
+Pinned Python dependencies and licenses reviewed on 2026-08-12:
+- beautifulsoup4 4.15.0, MIT
+- openpyxl 3.1.5, MIT
+- Pillow 12.3.0, HPND
+- pypdf 6.15.0, BSD-3-Clause
+- python-docx 1.2.0, MIT
+- python-pptx 1.0.2, MIT
+- pypdfium2 5.12.1, Apache-2.0 / BSD-3-Clause components
+- pywin32 311, PSF
+- pytest 9.1.1, MIT
+- pytest-cov 7.1.0, MIT
+- reportlab 5.0.0, BSD-3-Clause
+
+No private deployment configuration, user data, runtime database, chat export,
+attachment, log, credential, endpoint, account identifier, or model identifier
+is part of this distribution.

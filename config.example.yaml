@@ -1,0 +1,27 @@
+archive:
+  root: ./runtime-data
+  max_file_bytes: 20971520
+
+parsing:
+  max_rows_per_sheet: 500
+  max_pdf_vision_pages: 24
+  legacy_office:
+    enabled: false
+    prefer: libreoffice
+
+vision:
+  enabled: false
+  provider: openai-compatible
+  base_url: https://example.invalid/v1
+  api_key_env: VISION_API_KEY
+  primary_model: vision-primary
+  fallback_model: vision-fallback
+
+indexing:
+  enabled: false
+  adapter: your-local-rag-adapter
+
+memory:
+  database: ./runtime-data/memory.db
+  reject_credentials: true
+  newest_direct_evidence_wins: true
