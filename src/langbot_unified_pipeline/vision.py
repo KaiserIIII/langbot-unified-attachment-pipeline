@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 
 
 VisionCallback = Callable[[bytes, str, str], str]
+AsyncVisionCallback = Callable[[bytes, str, str], Awaitable[str]]
 
 _REFUSALS = (
     "i cannot see the image",
@@ -52,6 +53,28 @@ def run_vision_with_fallback(
         if callback is None:
             continue
         candidate = sanitize_vision_text(callback(image, mime_type, prompt), prompt)
+        if candidate:
+            return candidate
+    return ""
+
+
+async def run_vision_with_fallback_async(
+    image: bytes,
+    mime_type: str,
+    prompt: str,
+    primary: AsyncVisionCallback,
+    fallback: AsyncVisionCallback | None = None,
+) -> str:
+    for callback in (primary, fallback):
+        if callback is None:
+            continue
+        try:
+            candidate = sanitize_vision_text(
+                await callback(image, mime_type, prompt),
+                prompt,
+            )
+        except Exception:
+            candidate = ""
         if candidate:
             return candidate
     return ""

@@ -19,7 +19,12 @@ from pypdf import PdfReader
 from pptx import Presentation
 
 from .models import ParseResult
-from .vision import VisionCallback, run_vision_with_fallback
+from .vision import (
+    AsyncVisionCallback,
+    VisionCallback,
+    run_vision_with_fallback,
+    run_vision_with_fallback_async,
+)
 
 
 SUPPORTED_EXTENSIONS = {
@@ -43,6 +48,19 @@ class ParserConfig:
     )
     vision_primary: VisionCallback | None = None
     vision_fallback: VisionCallback | None = None
+
+
+@dataclass(slots=True)
+class AsyncParserConfig:
+    max_bytes: int = 20 * 1024 * 1024
+    max_rows_per_sheet: int = 500
+    max_pdf_vision_pages: int = 24
+    vision_prompt: str = (
+        "Describe the visible objects, layout, relationships, and all readable text. "
+        "Separate direct observations from uncertainty."
+    )
+    vision_primary: AsyncVisionCallback | None = None
+    vision_fallback: AsyncVisionCallback | None = None
 
 
 class AttachmentParseError(ValueError):
@@ -191,6 +209,75 @@ def _parse_image(data: bytes, extension: str, config: ParserConfig) -> ParseResu
     return ParseResult(text, {**metadata, "vision_used": True}, error="" if text else "invalid_vision_output")
 
 
+def _image_metadata(data: bytes, extension: str) -> tuple[dict[str, object], str]:
+    try:
+        with Image.open(io.BytesIO(data)) as image:
+            image.verify()
+        with Image.open(io.BytesIO(data)) as image:
+            width, height = image.size
+            detected_format = str(image.format or extension.lstrip(".")).lower()
+    except Exception as exc:
+        raise AttachmentParseError("invalid_image") from exc
+    mime_type = "image/jpeg" if extension in {".jpg", ".jpeg"} else f"image/{detected_format}"
+    return {"format": detected_format, "width": width, "height": height}, mime_type
+
+
+async def _parse_image_async(
+    data: bytes,
+    extension: str,
+    config: AsyncParserConfig,
+) -> ParseResult:
+    metadata, mime_type = _image_metadata(data, extension)
+    if config.vision_primary is None:
+        return ParseResult("", {**metadata, "needs_vision": True}, error="vision_required")
+    text = await run_vision_with_fallback_async(
+        data,
+        mime_type,
+        config.vision_prompt,
+        config.vision_primary,
+        config.vision_fallback,
+    )
+    return ParseResult(
+        text,
+        {**metadata, "vision_used": True},
+        error="" if text else "invalid_vision_output",
+    )
+
+
+async def _parse_pdf_async(data: bytes, config: AsyncParserConfig) -> ParseResult:
+    reader = PdfReader(io.BytesIO(data))
+    if reader.is_encrypted and reader.decrypt("") == 0:
+        return ParseResult("", {"format": "pdf", "encrypted": True}, error="encrypted_pdf")
+    native_pages = [(page.extract_text() or "").strip() for page in reader.pages]
+    rendered_pages = 0
+    output_pages: list[str] = []
+    for index, native_text in enumerate(native_pages):
+        selected = native_text
+        if (
+            _meaningful_length(native_text) < 60
+            and config.vision_primary is not None
+            and rendered_pages < config.max_pdf_vision_pages
+        ):
+            rendered = _render_pdf_page(data, index)
+            visual_text = await run_vision_with_fallback_async(
+                rendered,
+                "image/png",
+                config.vision_prompt,
+                config.vision_primary,
+                config.vision_fallback,
+            )
+            if visual_text:
+                selected = "\n\n".join(part for part in (native_text, visual_text) if part)
+            rendered_pages += 1
+        if selected:
+            output_pages.append(f"## Page {index + 1}\n\n{selected}")
+    return ParseResult(
+        "\n\n".join(output_pages),
+        {"format": "pdf", "pages": len(native_pages), "vision_pages": rendered_pages},
+        error="" if output_pages else "no_extractable_pdf_content",
+    )
+
+
 def _convert_with_libreoffice(data: bytes, extension: str, target_extension: str) -> bytes | None:
     executable = shutil.which("soffice") or shutil.which("libreoffice")
     if not executable:
@@ -280,3 +367,38 @@ def parse_attachment(data: bytes, filename: str, config: ParserConfig | None = N
     except Exception as exc:
         raise AttachmentParseError(f"parse_failed:{type(exc).__name__}") from exc
     raise AttachmentParseError(f"unsupported_extension:{extension}")
+
+
+async def parse_attachment_async(
+    data: bytes,
+    filename: str,
+    config: AsyncParserConfig | None = None,
+) -> ParseResult:
+    config = config or AsyncParserConfig()
+    extension = Path(filename).suffix.casefold()
+    if extension not in SUPPORTED_EXTENSIONS:
+        raise AttachmentParseError(f"unsupported_extension:{extension or '<none>'}")
+    if not data or len(data) > config.max_bytes:
+        raise AttachmentParseError("empty_or_oversized_payload")
+    if extension in LEGACY_TARGETS:
+        data, extension = _convert_legacy(data, extension)
+        filename = f"{Path(filename).stem}{extension}"
+    try:
+        if extension == ".pdf":
+            return await _parse_pdf_async(data, config)
+        if extension in IMAGE_EXTENSIONS:
+            return await _parse_image_async(data, extension, config)
+        return parse_attachment(
+            data,
+            filename,
+            ParserConfig(
+                max_bytes=config.max_bytes,
+                max_rows_per_sheet=config.max_rows_per_sheet,
+                max_pdf_vision_pages=config.max_pdf_vision_pages,
+                vision_prompt=config.vision_prompt,
+            ),
+        )
+    except AttachmentParseError:
+        raise
+    except Exception as exc:
+        raise AttachmentParseError(f"parse_failed:{type(exc).__name__}") from exc
