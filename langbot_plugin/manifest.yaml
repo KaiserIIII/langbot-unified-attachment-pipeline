@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: Plugin
+metadata:
+  author: KaiserIIII
+  name: UnifiedAttachmentPipeline
+  repository: https://github.com/KaiserIIII/langbot-unified-attachment-pipeline
+  version: 0.2.0
+  label:
+    en_US: Unified Attachment Pipeline
+    zh_Hans: 统一附件流水线
+    zh_Hant: 統一附件流水線
+    ja_JP: 統合添付ファイルパイプライン
+    th_TH: ไปป์ไลน์ไฟล์แนบแบบรวม
+    vi_VN: Quy trình tệp đính kèm hợp nhất
+    es_ES: Canalización unificada de adjuntos
+    ru_RU: Единый конвейер вложений
+  description:
+    en_US: Reliable local parsing for documents, sheets, slides, PDFs, and images with vision-model failover.
+    zh_Hans: 可靠解析文档、表格、演示文稿、PDF 和图片，并支持视觉模型故障切换。
+    zh_Hant: 可靠解析文件、試算表、簡報、PDF 和圖片，並支援視覺模型故障切換。
+    ja_JP: 文書、表計算、スライド、PDF、画像を解析し、視覚モデルのフェイルオーバーに対応します。
+    th_TH: แยกวิเคราะห์เอกสาร ตาราง สไลด์ PDF และรูปภาพ พร้อมการสลับโมเดลภาพเมื่อเกิดข้อผิดพลาด
+    vi_VN: Phân tích tài liệu, bảng tính, trang trình bày, PDF và hình ảnh với chuyển đổi mô hình thị giác dự phòng.
+    es_ES: Analiza documentos, hojas, presentaciones, PDF e imágenes con conmutación por error del modelo visual.
+    ru_RU: Разбирает документы, таблицы, презентации, PDF и изображения с резервной визуальной моделью.
+  icon: assets/icon.svg
+spec:
+  config:
+    - name: enable_vision
+      type: boolean
+      default: true
+      label:
+        en_US: Enable vision
+        zh_Hans: 启用视觉解析
+      description:
+        en_US: Recognize objects, layout, relationships, and text in images and scanned PDFs.
+        zh_Hans: 识别图片和扫描 PDF 中的物体、布局、关系与文字。
+    - name: vision_llm_model_uuid
+      type: llm-model-selector
+      required: false
+      show_if:
+        field: enable_vision
+        operator: eq
+        value: true
+      label:
+        en_US: Primary vision model
+        zh_Hans: 主视觉模型
+      description:
+        en_US: First model used for images and low-text PDF pages.
+        zh_Hans: 优先用于图片和低文本 PDF 页面的模型。
+    - name: vision_fallback_llm_model_uuid
+      type: llm-model-selector
+      required: false
+      show_if:
+        field: enable_vision
+        operator: eq
+        value: true
+      label:
+        en_US: Fallback vision model
+        zh_Hans: 备用视觉模型
+      description:
+        en_US: Used when the primary connection fails or returns unusable content.
+        zh_Hans: 主模型连接失败或返回无效内容时自动使用。
+    - name: primary_timeout_seconds
+      type: integer
+      default: 45
+      label:
+        en_US: Primary timeout
+        zh_Hans: 主模型超时秒数
+    - name: fallback_timeout_seconds
+      type: integer
+      default: 480
+      label:
+        en_US: Fallback timeout
+        zh_Hans: 备用模型超时秒数
+    - name: max_file_mb
+      type: integer
+      default: 20
+      label:
+        en_US: Maximum file size (MB)
+        zh_Hans: 最大文件大小（MB）
+    - name: max_rows_per_sheet
+      type: integer
+      default: 500
+      label:
+        en_US: Rows per sheet
+        zh_Hans: 每个工作表最大行数
+    - name: max_pdf_vision_pages
+      type: integer
+      default: 24
+      label:
+        en_US: Scanned PDF page limit
+        zh_Hans: 扫描 PDF 最大识别页数
+    - name: vision_prompt
+      type: prompt-editor
+      required: false
+      label:
+        en_US: Vision prompt
+        zh_Hans: 视觉识别提示词
+      description:
+        en_US: Leave empty to use the built-in object, layout, relationship, and OCR prompt.
+        zh_Hans: 留空时使用内置的物体、布局、关系和文字识别提示词。
+  components:
+    Parser:
+      fromDirs:
+        - path: components/unified_attachment_parser/
+execution:
+  python:
+    path: main.py
+    attr: UnifiedAttachmentPipelinePlugin

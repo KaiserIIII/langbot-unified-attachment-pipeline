@@ -1,0 +1,14 @@
+Unified Attachment Pipeline LangBot Plugin
+Copyright 2026 KaiserIIII and contributors
+
+This package includes the langbot-unified-attachment-pipeline core from the
+same Apache-2.0 repository and release. It does not redistribute GeneralParsers
+source code.
+
+Compatibility reference:
+- LangBot, https://github.com/langbot-app/LangBot
+  License: Apache-2.0
+  Reviewed commit: 7820949d3a3d8ca0b6f07d060deab40cb86807ff
+  Review date: 2026-08-12
+
+Pinned dependency licenses are documented in the repository NOTICE file.

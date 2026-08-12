@@ -4,6 +4,8 @@
 
 这是一个本地优先、与框架解耦的附件摄入和版本化长期记忆核心，面向 LangBot 类个人 Agent，也可以单独使用其中的解析器、归档器、索引回调和 SQLite 记忆库。
 
+仓库的 [`langbot_plugin/`](langbot_plugin/readme/README_zh_Hans.md) 目录包含可直接安装的 LangBot Parser 插件。它把常见格式解析器接入 LangBot，并支持主视觉模型失败后自动调用备用模型，可通过 LangBot Plugin SDK 构建为 `.lbpkg`。
+
 它重点解决四类常见问题：
 
 - 附件尚未解析完成，助手就先回复“已理解”；
@@ -77,6 +79,8 @@ context = pipeline.context_for_query("What was in notes.txt?")
 图片可以配置主视觉模型和备用模型。两者的输出都会经过校验；拒绝语、上传指引、空输出和高度重合的提示词复述都会被拒绝。
 
 ## 接入 LangBot
+
+需要直接安装时，请在 LangBot Space 使用 `KaiserIIII/UnifiedAttachmentPipeline`，或从 `langbot_plugin/` 目录构建插件包。下面内容用于需要自行编排核心库的低层接入场景。
 
 在入站消息边界调用本流水线：
 

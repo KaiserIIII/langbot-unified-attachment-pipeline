@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Parser
+metadata:
+  name: unified_attachment_parser
+  label:
+    en_US: Unified Attachment Parser
+    zh_Hans: 统一附件解析器
+  description:
+    en_US: Parse common documents and semantically recognize image content.
+    zh_Hans: 解析常见文档并对图片内容进行语义识别。
+spec:
+  supported_mime_types:
+    - application/pdf
+    - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    - application/msword
+    - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+    - application/vnd.ms-excel.sheet.macroenabled.12
+    - application/vnd.ms-excel
+    - application/vnd.openxmlformats-officedocument.presentationml.presentation
+    - application/vnd.ms-powerpoint.presentation.macroenabled.12
+    - application/vnd.ms-powerpoint
+    - text/csv
+    - text/tab-separated-values
+    - text/plain
+    - text/markdown
+    - text/html
+    - image/png
+    - image/jpeg
+    - image/webp
+    - image/gif
+    - image/bmp
+    - image/tiff
+execution:
+  python:
+    path: parser.py
+    attr: UnifiedAttachmentParser

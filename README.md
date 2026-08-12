@@ -4,6 +4,8 @@
 
 A local-first, framework-neutral core for reliable chat attachment ingestion and version-aware long-term memory. It was designed for LangBot-style personal agents, but its parser, archive, index callback, and SQLite memory store can be used independently.
 
+An installable LangBot Parser plugin is included in [`langbot_plugin/`](langbot_plugin/README.md). It exposes the common-format parser directly to LangBot, supports primary-to-fallback vision model routing, and can be built as a `.lbpkg` with the LangBot Plugin SDK.
+
 The project addresses four failure modes common in personal agents:
 
 - an attachment is acknowledged before parsing finishes;
@@ -84,6 +86,8 @@ config = ParserConfig(
 ```
 
 ## LangBot Integration
+
+For the ready-to-install plugin, use `KaiserIIII/UnifiedAttachmentPipeline` from LangBot Space or build the package from `langbot_plugin/`. The notes below describe lower-level custom integration with this core library.
 
 Use the pipeline at the inbound-message boundary:
 
