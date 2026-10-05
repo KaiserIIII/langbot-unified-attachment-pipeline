@@ -2,7 +2,7 @@
 
 [简体中文](README.zh-CN.md)
 
-A local-first, framework-neutral core for reliable chat attachment ingestion and version-aware long-term memory. It was designed for LangBot-style personal agents, but its parser, archive, index callback, and SQLite memory store can be used independently.
+A Python library and LangBot Parser plugin for ingesting chat attachments and maintaining version-aware memory. The core combines format parsing, immutable file receipts, digest-bound context, an optional indexing callback, and a SQLite fact store.
 
 An installable LangBot Parser plugin is included in [`langbot_plugin/`](langbot_plugin/README.md). It exposes the common-format parser directly to LangBot, supports primary-to-fallback vision model routing, and can be built as a `.lbpkg` with the LangBot Plugin SDK.
 
@@ -46,6 +46,8 @@ The archive ledger groups records by normalized original filename. A `current` r
 Legacy Office support requires either LibreOffice on `PATH` or the `windows-office` extra with locally installed Microsoft Office. Image understanding never pretends success without a configured vision callback. Scanned-PDF vision requires the `pdf-vision` extra.
 
 ## Quick Start
+
+Requires Python 3.11+.
 
 ```bash
 python -m venv .venv
@@ -118,7 +120,6 @@ current = memory.current("study.destination")
 - Parsed document content is untrusted data, never executable instructions.
 - Corrupt, encrypted, empty, oversized, unsupported, and invalid-vision inputs fail closed.
 - API keys, bearer tokens, JWTs, cookies, sessions, and passwords are excluded from memory.
-- The example configuration contains placeholders only.
 
 If an external model is used for vision or answer generation, selected private content leaves the local machine. Configure that boundary deliberately. See [SECURITY.md](SECURITY.md).
 
@@ -129,10 +130,10 @@ python -m pip install -e ".[test,pdf-vision]"
 pytest --cov=langbot_unified_pipeline --cov-report=term-missing
 ```
 
-Tests generate anonymous documents in memory. No chat export, user attachment, database, local path, account identifier, endpoint, or model configuration is included.
+The test suite covers archive versioning, parsers, vision fallback, memory updates, and invalid inputs.
 
 ## Provenance and License
 
-This repository is an independent implementation. It does not redistribute the GeneralParsers source because the reviewed upstream snapshot did not contain a recognized license. LangBot compatibility was reviewed against the Apache-2.0 project listed in [NOTICE](NOTICE).
+This repository is an independent implementation. LangBot compatibility was reviewed against the Apache-2.0 project listed in [NOTICE](NOTICE).
 
 Released under the Apache License 2.0.

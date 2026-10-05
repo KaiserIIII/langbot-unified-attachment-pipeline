@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-这是一个本地优先、与框架解耦的附件摄入和版本化长期记忆核心，面向 LangBot 类个人 Agent，也可以单独使用其中的解析器、归档器、索引回调和 SQLite 记忆库。
+用于聊天附件摄入与版本化记忆的 Python 库和 LangBot Parser 插件。核心包含格式解析、不可变收件记录、摘要绑定的上下文、可选索引回调及 SQLite 事实存储。
 
 仓库的 [`langbot_plugin/`](langbot_plugin/readme/README_zh_Hans.md) 目录包含可直接安装的 LangBot Parser 插件。它把常见格式解析器接入 LangBot，并支持主视觉模型失败后自动调用备用模型，可通过 LangBot Plugin SDK 构建为 `.lbpkg`。
 
@@ -46,6 +46,8 @@
 旧版 Office 需要 `PATH` 中存在 LibreOffice，或在 Windows 安装 Microsoft Office 并启用 `windows-office` 依赖。未配置视觉回调时，图片会明确失败，不会伪装成“已看懂”。扫描 PDF 的视觉识别需要 `pdf-vision` 依赖。
 
 ## 快速开始
+
+需要 Python 3.11+。
 
 ```bash
 python -m venv .venv
@@ -111,7 +113,6 @@ current = memory.current("study.destination")
 - 文档内容一律是不可信数据，不能作为工具指令执行。
 - 损坏、加密、空白、超限、不支持以及视觉输出无效的输入会失败关闭。
 - API 密钥、Bearer Token、JWT、Cookie、会话和密码不会写入记忆。
-- 示例配置只包含占位符。
 
 如果使用外部视觉模型或生成模型，被选中的私有上下文会离开本机。请明确配置并理解这一边界。详见 [SECURITY.md](SECURITY.md)。
 
@@ -122,7 +123,7 @@ python -m pip install -e ".[test,pdf-vision]"
 pytest --cov=langbot_unified_pipeline --cov-report=term-missing
 ```
 
-测试只在内存中生成匿名文档。本仓库不包含聊天导出、真实附件、数据库、本机路径、账号 ID、私有端点或模型配置。
+测试覆盖归档版本选择、格式解析、视觉回退、记忆更新和无效输入。
 
 ## 来源与许可证
 
